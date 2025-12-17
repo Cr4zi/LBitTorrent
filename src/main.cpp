@@ -1,7 +1,15 @@
 #include <iostream>
 
+#include "core/bencode.h"
+
 int main(int argc, char *argv[]){
-    std::cout << "Hello, Torrent!" << std::endl;
+    if(argc != 2) {
+        std::cerr << "Usage: ./LBitTorrent /path/to-file" << std::endl;
+        return 1;
+    }
+
+    bencode::BencodePtr parsed = bencode::ParseFile(argv[1]);
+
 
     return 0;
 }
