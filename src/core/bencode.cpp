@@ -95,6 +95,7 @@ std::optional<bencode::Dict> bencode::ParseDict(std::istream& stream) {
 
     return dict;
 }
+
 bencode::BencodePtr bencode::ParseElement(std::istream& file) {
     BencodePtr ptr{std::make_unique<Bencode>()};
 
@@ -166,3 +167,36 @@ bencode::BencodePtr bencode::ParseFile(const std::string& filename) {
     return ptr;
 }
 
+std::string bencode::EncodeElement(bencode::Bencode* element) {
+    std::string result{};
+    if(const i64* num = std::get_if<i64>(&element->val)) {
+        result += 'i';
+        result += std::to_string(*num);
+        result += 'e';
+    } else if(const std::vector<u8>* vec = std::get_if<std::vector<u8>>(&element->val)) {
+        result += EncodeElement(*vec);
+    } else if(const List* list = std::get_if<List>(&element->val)) {
+        result += 'l';
+        for(auto& ele : *list)
+            result += EncodeElement(ele.get());
+        result += 'e';
+    } else if(const Dict* dict = std::get_if<Dict>(&element->val)) {
+        result += 'd';
+        for(auto it = dict->begin(); it != dict->end(); ++it) {
+            result += EncodeElement(it->first);
+            result += EncodeElement(it->second.get());
+        }
+    }
+
+    return result;
+}
+
+std::string bencode::EncodeElement(const std::vector<u8>& vec) {
+    std::string result{};
+    result += std::to_string(vec.size());
+    result += ':';
+    for(auto ch : vec)
+        result += ch;
+
+    return result;
+}

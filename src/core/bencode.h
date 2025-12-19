@@ -34,4 +34,7 @@ namespace bencode {
     // and if I'm already creating a copy for that string I may as well use it for the whole
     // function
     BencodePtr ParseFile(const std::string& filename);
+
+    std::string EncodeElement(Bencode* element);
+    std::string EncodeElement(const std::vector<u8>& vec);
 }

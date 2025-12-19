@@ -10,6 +10,7 @@ int main(int argc, char *argv[]){
 
     bencode::BencodePtr parsed = bencode::ParseFile(argv[1]);
 
+    std::cout << bencode::EncodeElement(parsed.get()) << std::endl;
 
     return 0;
 }
