@@ -48,8 +48,6 @@ std::vector<std::string> TorrentFile::GetAnnounceList() {
             if(!list_of_lists)
                 continue;
 
-            // std::cout << bencode::EncodeElement(announce.get()) << std::endl;
-
             for(auto& url : *list_of_lists) {
                 assert(std::holds_alternative<std::string>(url->val));
 
