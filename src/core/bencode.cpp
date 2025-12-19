@@ -29,8 +29,8 @@ std::optional<i64> bencode::ParseInt(std::istream& stream, bool is_str_length) {
     return is_negative ? -number : number;
 }
 
-std::optional<std::vector<u8>> bencode::ParseString(std::istream& stream) {
-    std::vector<u8> string{};
+std::optional<std::string> bencode::ParseString(std::istream& stream) {
+    std::string string{};
     std::optional<i64> length_opt = ParseInt(stream, true);
     if(!length_opt.has_value())
         return std::nullopt;
@@ -43,7 +43,7 @@ std::optional<std::vector<u8>> bencode::ParseString(std::istream& stream) {
         if(c == EOF)
             return std::nullopt;
 
-        string.push_back(static_cast<u8>(c));
+        string += c;
     }
 
     return string;
@@ -80,7 +80,7 @@ std::optional<bencode::Dict> bencode::ParseDict(std::istream& stream) {
             return std::nullopt;
         }
 
-        std::optional<std::vector<u8>> key = ParseString(stream);
+        std::optional<std::string> key = ParseString(stream);
         if(!key.has_value())
             return std::nullopt;
 
@@ -173,7 +173,7 @@ std::string bencode::EncodeElement(bencode::Bencode* element) {
         result += 'i';
         result += std::to_string(*num);
         result += 'e';
-    } else if(const std::vector<u8>* vec = std::get_if<std::vector<u8>>(&element->val)) {
+    } else if(const std::string* vec = std::get_if<std::string>(&element->val)) {
         result += EncodeElement(*vec);
     } else if(const List* list = std::get_if<List>(&element->val)) {
         result += 'l';
@@ -186,17 +186,17 @@ std::string bencode::EncodeElement(bencode::Bencode* element) {
             result += EncodeElement(it->first);
             result += EncodeElement(it->second.get());
         }
+        result += 'e';
     }
 
     return result;
 }
 
-std::string bencode::EncodeElement(const std::vector<u8>& vec) {
+std::string bencode::EncodeElement(const std::string& str) {
     std::string result{};
-    result += std::to_string(vec.size());
+    result += std::to_string(str.size());
     result += ':';
-    for(auto ch : vec)
-        result += ch;
+    result += str;
 
     return result;
 }

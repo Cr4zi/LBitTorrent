@@ -4,7 +4,6 @@
 #include <variant>
 #include <vector>
 #include <map>
-#include <string_view>
 #include <fstream>
 #include <optional>
 #include <cctype>
@@ -17,15 +16,15 @@ namespace bencode {
     struct Bencode;
     using BencodePtr = std::unique_ptr<Bencode>;
 
-    using Dict = std::map<std::vector<u8>, BencodePtr>;
+    using Dict = std::map<std::string, BencodePtr>;
     using List = std::vector<BencodePtr>;
     
     struct Bencode {
-        std::variant<i64, std::vector<u8>, List, Dict> val;
+        std::variant<i64, std::string, List, Dict> val;
     };
 
     std::optional<i64> ParseInt(std::istream& stream, bool is_str_length=false);
-    std::optional<std::vector<u8>> ParseString(std::istream& stream);
+    std::optional<std::string> ParseString(std::istream& stream);
     std::optional<List> ParseList(std::istream& stream);
     std::optional<Dict> ParseDict(std::istream& stream);
     BencodePtr ParseElement(std::istream& file);
@@ -36,5 +35,5 @@ namespace bencode {
     BencodePtr ParseFile(const std::string& filename);
 
     std::string EncodeElement(Bencode* element);
-    std::string EncodeElement(const std::vector<u8>& vec);
+    std::string EncodeElement(const std::string& str);
 }
