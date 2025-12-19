@@ -1,6 +1,7 @@
 #include <iostream>
 
-#include "core/bencode.h"
+#include "core/torrent_file.h"
+
 
 int main(int argc, char *argv[]){
     if(argc != 2) {
@@ -8,9 +9,15 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    bencode::BencodePtr parsed = bencode::ParseFile(argv[1]);
+    TorrentFile file{argv[1]};
+    if(!file.is_file_correct) {
+        std::cerr << "Cannot open file" << std::endl;
+        return 1;
+    }
+    
+    for(const std::string& announce : file.GetAnnounceList())
+        std::cout << announce << '\n';
 
-    std::cout << bencode::EncodeElement(parsed.get()) << std::endl;
 
     return 0;
 }
