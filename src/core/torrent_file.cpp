@@ -21,23 +21,17 @@ TorrentFile::TorrentFile(const std::string& filename)
 
 TorrentFile::~TorrentFile() {}
 
-std::vector<std::string> TorrentFile::GetAnnounceList() {
-    std::vector<std::string> announce_list{};
-
-    if(auto search = metainfo->find("announce"); search != metainfo->end()) {
-        assert(std::holds_alternative<std::string>(search->second->val));
-        
-        std::string str = std::get<std::string>(search->second->val);
-        announce_list.push_back(str);
-    }
+std::unordered_map<i64, std::vector<std::string>> TorrentFile::GetAnnounceList() {
+    std::unordered_map<i64, std::vector<std::string>> announce_map{};
 
     if(auto search = metainfo->find("announce-list"); search != metainfo->end()) {
         assert(std::holds_alternative<bencode::List>(search->second->val));
 
         bencode::List *list = std::get_if<bencode::List>(&search->second->val);
         if(!list) // shouldn't be null since we did assert
-            return announce_list;
+            return announce_map;
 
+        i64 tier = 0;
         for(auto& announce : *list) {
             assert(std::holds_alternative<bencode::List>(announce->val));
 
@@ -47,16 +41,26 @@ std::vector<std::string> TorrentFile::GetAnnounceList() {
             if(!list_of_lists)
                 continue;
 
+            std::vector<std::string> announce_list{};
+
             for(auto& url : *list_of_lists) {
                 assert(std::holds_alternative<std::string>(url->val));
 
                 announce_list.push_back(std::get<std::string>(url->val));
             }
 
+            announce_map.insert({tier, std::move(announce_list)});
+            tier++;
         }
+    } else if(auto search = metainfo->find("announce"); search != metainfo->end()) {
+        assert(std::holds_alternative<std::string>(search->second->val));
+
+        std::string str = std::get<std::string>(search->second->val);
+        std::vector<std::string> vec{str};
+        announce_map.insert({0, vec});
     }
 
-    return announce_list;
+    return announce_map;
 }
 
 
@@ -95,4 +99,21 @@ std::vector<std::string> TorrentFile::GetPieces() {
     }
 
     return pieces;
+}
+
+bool TorrentFile::IsPrivate() {
+    if(auto search = metainfo->find("info"); search != metainfo->end()) {
+        assert(std::holds_alternative<bencode::Dict>(search->second->val));
+
+        bencode::Dict* info = std::get_if<bencode::Dict>(&search->second->val);
+        if(!info)
+            return false;
+
+        if(auto private_search = info->find("private"); private_search != info->end()) {
+            assert(std::holds_alternative<i64>(private_search->second->val));
+            return std::get<i64>(private_search->second->val) >= 1 ? true : false;
+        }
+    }
+
+    return false;
 }

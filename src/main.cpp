@@ -18,9 +18,8 @@ int main(int argc, char *argv[]){
         return 1;
     }
     
-    for(const std::string& announce : file.GetAnnounceList())
-        std::cout << announce << '\n';
 
+    std::cout << file.IsPrivate() << std::endl;
 
     return 0;
 }

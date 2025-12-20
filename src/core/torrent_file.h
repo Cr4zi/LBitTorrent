@@ -4,9 +4,11 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <unordered_map>
 #include <cassert>
 #include <openssl/sha.h>
 
+#include "../common.h"
 #include "bencode.h"
 
 struct TorrentFile {
@@ -17,7 +19,8 @@ struct TorrentFile {
     TorrentFile(const std::string& filename);
     ~TorrentFile();
 
-    std::vector<std::string> GetAnnounceList();
+    std::unordered_map<i64, std::vector<std::string>> GetAnnounceList();
     std::string GetInfoHash();
     std::vector<std::string> GetPieces();
+    bool IsPrivate();
 };
