@@ -19,4 +19,5 @@ struct TorrentFile {
 
     std::vector<std::string> GetAnnounceList();
     std::string GetInfoHash();
+    std::vector<std::string> GetPieces();
 };

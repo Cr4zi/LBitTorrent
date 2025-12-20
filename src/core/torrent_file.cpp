@@ -1,6 +1,5 @@
 #include "torrent_file.h"
 #include "bencode.h"
-#include <openssl/sha.h>
 #include <variant>
 
 TorrentFile::TorrentFile(const std::string& filename)
@@ -63,6 +62,8 @@ std::vector<std::string> TorrentFile::GetAnnounceList() {
 
 std::string TorrentFile::GetInfoHash() {
     if(auto search = metainfo->find("info"); search != metainfo->end()) {
+        assert(std::holds_alternative<bencode::Dict>(search->second->val));
+        
         unsigned char obuf[SHA_DIGEST_LENGTH];
         std::string encoded = bencode::EncodeElement(search->second.get());
         unsigned char *ibuf = reinterpret_cast<unsigned char *>(encoded.data());
@@ -72,4 +73,26 @@ std::string TorrentFile::GetInfoHash() {
     }
 
     return "";
+}
+
+std::vector<std::string> TorrentFile::GetPieces() {
+    std::vector<std::string> pieces{};
+    if(auto search = metainfo->find("info"); search != metainfo->end()) {
+        assert(std::holds_alternative<bencode::Dict>(search->second->val));
+        
+        bencode::Dict* info = std::get_if<bencode::Dict>(&search->second->val);
+        if(!info)
+            return pieces;
+        
+        if(auto search_pieces = info->find("pieces"); search_pieces != info->end()) {
+            assert(std::holds_alternative<std::string>(search_pieces->second->val));
+            
+            std::string pieces_str = std::get<std::string>(search_pieces->second->val);
+            for(size_t i{}; i < pieces_str.length() / 20; i++) {
+                pieces.push_back(pieces_str.substr(i * 20, (i + 1) * 20));
+            }
+        }
+    }
+
+    return pieces;
 }

@@ -1,5 +1,8 @@
 #include <iostream>
+#include <sstream>
+#include <iomanip>
 
+#include "common.h"
 #include "core/torrent_file.h"
 
 
