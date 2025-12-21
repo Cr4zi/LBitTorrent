@@ -10,8 +10,13 @@ find_package(OpenSSL REQUIRED)
 set(CORE src/core/bencode.cpp
     src/core/torrent_file.cpp)
 
+set(NET src/net/peer_discovery.cpp
+    src/net/utils/basic_socket.cpp
+    src/net/utils/socket_pool.cpp)
+
 add_executable(${PROJECT_NAME}
     ${CORE}
+    ${NET}
     src/main.cpp)
 
 target_link_libraries(${PROJECT_NAME}

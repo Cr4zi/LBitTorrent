@@ -21,7 +21,7 @@ TorrentFile::TorrentFile(const std::string& filename)
 
 TorrentFile::~TorrentFile() {}
 
-std::unordered_map<i64, std::vector<std::string>> TorrentFile::GetAnnounceList() {
+std::unordered_map<i64, std::vector<std::string>> TorrentFile::GetAnnounceList() const {
     std::unordered_map<i64, std::vector<std::string>> announce_map{};
 
     if(auto search = metainfo->find("announce-list"); search != metainfo->end()) {
@@ -63,8 +63,7 @@ std::unordered_map<i64, std::vector<std::string>> TorrentFile::GetAnnounceList()
     return announce_map;
 }
 
-
-std::string TorrentFile::GetInfoHash() {
+std::string TorrentFile::GetInfoHash() const {
     if(auto search = metainfo->find("info"); search != metainfo->end()) {
         assert(std::holds_alternative<bencode::Dict>(search->second->val));
         
@@ -79,7 +78,7 @@ std::string TorrentFile::GetInfoHash() {
     return "";
 }
 
-std::vector<std::string> TorrentFile::GetPieces() {
+std::vector<std::string> TorrentFile::GetPieces() const {
     std::vector<std::string> pieces{};
     if(auto search = metainfo->find("info"); search != metainfo->end()) {
         assert(std::holds_alternative<bencode::Dict>(search->second->val));
@@ -101,7 +100,7 @@ std::vector<std::string> TorrentFile::GetPieces() {
     return pieces;
 }
 
-bool TorrentFile::IsPrivate() {
+bool TorrentFile::IsPrivate() const {
     if(auto search = metainfo->find("info"); search != metainfo->end()) {
         assert(std::holds_alternative<bencode::Dict>(search->second->val));
 

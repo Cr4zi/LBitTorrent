@@ -19,8 +19,8 @@ struct TorrentFile {
     TorrentFile(const std::string& filename);
     ~TorrentFile();
 
-    std::unordered_map<i64, std::vector<std::string>> GetAnnounceList();
-    std::string GetInfoHash();
-    std::vector<std::string> GetPieces();
-    bool IsPrivate();
+    std::unordered_map<i64, std::vector<std::string>> GetAnnounceList() const;
+    std::string GetInfoHash() const;
+    std::vector<std::string> GetPieces() const;
+    bool IsPrivate() const;
 };
