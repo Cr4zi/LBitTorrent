@@ -38,4 +38,5 @@ private:
     std::string m_tracker_id;
 
     std::string prepare_request(const std::string& host, std::string_view peer_id, Event ev);
+    static bool valid_response(const std::string& resp);
 };
