@@ -139,7 +139,7 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
         return peers;
     }
 
-    std::unordered_map<i64, std::vector<std::string>> announce_map{file.GetAnnounceList()};
+    const std::unordered_map<i64, std::vector<std::string>>& announce_map{file.GetAnnounceList()};
     // std::vector<size_t> indicies{announce_map.size(), 0};
     std::vector<HostMsg> resp{};
 
