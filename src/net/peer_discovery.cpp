@@ -81,6 +81,56 @@ bool PeerDiscovery::valid_response(const std::string& resp) {
     return false;
 }
 
+std::vector<Peer> PeerDiscovery::parse_resp(const std::string& msg) {
+    std::vector<Peer> peers{};
+
+    const std::string delm = "\r\n\r\n";
+
+    auto it = msg.find(delm);
+    if(it == std::string::npos) {
+        return peers;
+    }
+
+    std::stringstream stream{msg.substr(it + delm.size())};
+    bencode::BencodePtr dict_bencode = bencode::ParseElement(stream);
+    assert(std::holds_alternative<bencode::Dict>(dict_bencode->val));
+
+    bencode::Dict *dict = std::get_if<bencode::Dict>(&dict_bencode->val);
+    if(!dict) // shouldn't be null since we check with assert
+        return peers;
+
+    if(auto interval_it = dict->find("interval"); interval_it != dict->end()) {
+        assert(std::holds_alternative<i64>(interval_it->second->val));
+        m_interval = std::get<i64>(interval_it->second->val);
+    }
+
+    if(auto id_it = dict->find("tracker id"); id_it != dict->end()) {
+        assert(std::holds_alternative<std::string>(id_it->second->val));
+        m_tracker_id = std::get<std::string>(id_it->second->val);
+    }
+
+    // since I've set compact: 1 we only need to care about peers in binary
+    if(auto peers_it = dict->find("peers"); peers_it != dict->end()) { 
+        assert(std::holds_alternative<std::string>(peers_it->second->val));
+
+        const std::string& peers_str = std::get<std::string>(peers_it->second->val);
+        for(size_t i{}; i < peers_str.size(); i+= 6) {
+            std::stringstream ss;
+
+            // since we get IPv4
+            for(size_t j{}; j < 4; j++)
+                ss << static_cast<unsigned int>(static_cast<unsigned char>(peers_str[i + j])) << '.';
+
+            u16 port = ((static_cast<u16>(peers_str[i + 4]) << 8) | (static_cast<u16>(peers_str[i + 5])));
+
+            const std::string& str = ss.str();
+            peers.push_back({str.substr(0, str.size() - 1), port});
+        }
+    }
+
+    return peers;
+}
+
 std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
     std::vector<Peer> peers{};
 
@@ -140,7 +190,8 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
     }
 
     for(const HostMsg& pair : resp) {
-        std::cout << "Host: " << pair.first << "\nMsg: " << pair.second << std::endl;
+        const std::vector<Peer>& peer = parse_resp(pair.second);
+        peers.insert(peers.end(), std::make_move_iterator(peer.begin()), std::make_move_iterator(peer.end()));
     }
     
     return peers;
