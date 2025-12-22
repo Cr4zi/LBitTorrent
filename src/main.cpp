@@ -34,8 +34,11 @@ int main(int argc, char *argv[]){
         return 1;
     }
 
-    PeerDiscovery peers{file};
-    peers.GetPeers(generate_peer_id(), STARTED);
+    PeerDiscovery peers_discovery{file};
+    const std::vector<Peer>& peers = peers_discovery.GetPeers(generate_peer_id(), STARTED);
+    for(const Peer& peer : peers) {
+        std::cout << peer.ip << ":" << peer.port << std::endl;
+    }
 
     return 0;
 }

@@ -8,6 +8,7 @@
 #include <openssl/rand.h>
 
 #include "../common.h"
+#include "../core/bencode.h"
 #include "../core/torrent_file.h"
 #include "utils/basic_socket.h"
 #include "utils/socket_pool.h"
@@ -38,5 +39,11 @@ private:
     std::string m_tracker_id;
 
     std::string prepare_request(const std::string& host, std::string_view peer_id, Event ev);
+
+    /* @param resp from a tracker
+     * @ returns vector of parsed peers
+     */
+    std::vector<Peer> parse_resp(const std::string& msg);
+    
     static bool valid_response(const std::string& resp);
 };
