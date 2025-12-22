@@ -73,7 +73,7 @@ bool PeerDiscovery::valid_response(const std::string& resp) {
         const std::string key = "Content-Length:";
         if (line.rfind(key, 0) == 0) {
             std::size_t pos = line.find(':');
-            long content_length = std::stol(line.substr(pos + 1));
+            size_t content_length = std::stol(line.substr(pos + 1)); // HTTP response cannot be negative
             return content_length != 0;
         }
     }
