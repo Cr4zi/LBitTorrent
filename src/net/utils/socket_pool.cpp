@@ -40,7 +40,7 @@ SocketPool::~SocketPool() {
     close(epollfd);
 }
 
-std::vector<HostMsg> SocketPool::Send(const std::vector<HostMsg>& messages, i32 when_to_stop) {
+std::vector<HostMsg> SocketPool::Send(const std::vector<HostMsg>& messages, i32 when_to_stop, bool (*valid_response)(const std::string&)) {
     const i32 MAX_EVENTS = sockets.size() * 2;
     struct epoll_event events[MAX_EVENTS];
     std::vector<HostMsg> result{};
@@ -91,7 +91,7 @@ std::vector<HostMsg> SocketPool::Send(const std::vector<HostMsg>& messages, i32 
                 socket->SendBuf(host_it->second);
             } else if(socket->status == CONNECTED && events[n].events & EPOLLIN) {
                 std::string buf = socket->ReadBuf();
-                if(buf.size() != 0) {
+                if(buf.size() != 0 && valid_response(buf)) {
                     result.emplace_back(socket->addr, buf);
                     read_from++;
                 }

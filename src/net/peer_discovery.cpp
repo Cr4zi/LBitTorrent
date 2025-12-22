@@ -50,6 +50,37 @@ std::string PeerDiscovery::prepare_request(const std::string& host, std::string_
     return ss.str();
 }
 
+
+bool PeerDiscovery::valid_response(const std::string& resp) {
+    std::istringstream stream{resp};
+    std::string line;
+
+    if (!std::getline(stream, line))
+        return false;
+
+    std::istringstream status_line{line};
+    std::string http_version;
+    int status_code;
+
+    status_line >> http_version >> status_code;
+    if (status_code != 200)
+        return false;
+
+    while (std::getline(stream, line)) {
+        if (line == "\r" || line.empty()) // end of headers
+            break;
+
+        const std::string key = "Content-Length:";
+        if (line.rfind(key, 0) == 0) {
+            std::size_t pos = line.find(':');
+            size_t content_length = std::stol(line.substr(pos + 1)); // HTTP response cannot be negative
+            return content_length != 0;
+        }
+    }
+
+    return false;
+}
+
 std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
     std::vector<Peer> peers{};
 
@@ -103,13 +134,13 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
 
         SocketPool pool{std::move(sockets_data)};
         if(ev == STARTED)
-            resp = pool.Send(messages, 1);
+            resp = pool.Send(messages, 1, valid_response);
         else
-            resp = pool.Send(messages, 4);
+            resp = pool.Send(messages, 4, valid_response);
     }
 
     for(const HostMsg& pair : resp) {
-        std::cout << "Host: " << pair.first << "\n Msg: " << pair.second << std::endl;
+        std::cout << "Host: " << pair.first << "\nMsg: " << pair.second << std::endl;
     }
     
     return peers;

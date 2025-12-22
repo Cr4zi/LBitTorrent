@@ -23,8 +23,9 @@ public:
 
     /* @param messages Vector of pair<host, message>
      * @param when_to_stop after what amount stop reading
+     * @param valid_response pointer to a function that returns whether a response is valid
      * @returns Vector of pair<host, response> */
-    std::vector<HostMsg> Send(const std::vector<HostMsg>& messages, i32 when_to_stop);
+    std::vector<HostMsg> Send(const std::vector<HostMsg>& messages, i32 when_to_stop, bool (*valid_reponse)(const std::string&));
 private:
     ssize_t epollfd;
 };
