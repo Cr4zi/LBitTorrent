@@ -142,6 +142,11 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
     std::unordered_map<i64, std::vector<std::string>> announce_map{file.GetAnnounceList()};
     // std::vector<size_t> indicies{announce_map.size(), 0};
     std::vector<HostMsg> resp{};
+    SocketPool pool{};
+    if(!pool.is_pool_good) {
+        std::cerr << "Couldn't create pool" << std::endl;
+        return peers;
+    }
 
     while(resp.empty()) {
         std::vector<std::pair<std::string, u16>> sockets_data{};
@@ -176,17 +181,18 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
             if(port > USHRT_MAX) // invalid port
                 continue;
             
-            sockets_data.push_back({host, static_cast<u16>(port)});
-            messages.push_back({host, prepare_request(host, peer_id, ev)});
+            pool.AddSocket(host, port);
+            pool.AddMsg(host, prepare_request(host, peer_id, ev));
 
             //indicies[i]++;
         }
 
-        SocketPool pool{std::move(sockets_data)};
-        if(ev == STARTED)
-            resp = pool.Send(messages, 1, valid_response);
-        else
-            resp = pool.Send(messages, 4, valid_response);
+        if(pool.Send() == -1) {
+            std::cerr << "Couldn't send" << std::endl;
+            return peers;
+        }
+
+        resp = pool.Recv(valid_response);
     }
 
     for(const HostMsg& pair : resp) {
