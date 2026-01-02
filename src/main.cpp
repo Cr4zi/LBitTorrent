@@ -3,6 +3,7 @@
 #include "common.h"
 #include "core/torrent_file.h"
 #include "net/peer_discovery.h"
+#include "net/peers_connection.h"
 
 std::string generate_peer_id() {
     std::ostringstream oss;
@@ -23,6 +24,8 @@ std::string generate_peer_id() {
 }
 
 int main(int argc, char *argv[]){
+    std::string peer_id = generate_peer_id();
+    
     if(argc != 2) {
         std::cerr << "Usage: " << argv[0] << " /path/to-file" << std::endl;
         return 1;
@@ -33,12 +36,14 @@ int main(int argc, char *argv[]){
         std::cerr << "Cannot open file" << std::endl;
         return 1;
     }
-
+    
     PeerDiscovery peers_discovery{file};
-    const std::vector<Peer>& peers = peers_discovery.GetPeers(generate_peer_id(), STARTED);
+    const std::vector<Peer>& peers = peers_discovery.GetPeers(peer_id, STARTED);
     for(const Peer& peer : peers) {
         std::cout << peer.ip << ":" << peer.port << std::endl;
     }
+
+    PeersConnection connection{file, peers, peer_id};
 
     return 0;
 }

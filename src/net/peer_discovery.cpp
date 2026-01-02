@@ -181,8 +181,8 @@ std::vector<Peer> PeerDiscovery::GetPeers(std::string_view peer_id, Event ev) {
             if(port > USHRT_MAX) // invalid port
                 continue;
             
-            pool.AddSocket(host, port);
-            pool.AddMsg(host, prepare_request(host, peer_id, ev));
+            if(pool.AddSocket(host, port))
+                pool.AddMsg(host, prepare_request(host, peer_id, ev));
 
             //indicies[i]++;
         }

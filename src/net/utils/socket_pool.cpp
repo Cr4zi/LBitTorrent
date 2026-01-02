@@ -38,32 +38,56 @@ SocketPool::~SocketPool() {
     close(epollfd);
 }
 
-void SocketPool::AddSocket(const std::string& host, u16 port) {
+bool SocketPool::AddSocket(const std::string& host, u16 port) {
     struct epoll_event ev;
 
     std::unique_ptr<BasicSocket> sock {std::make_unique<BasicSocket>(host, port)};
     if(!sock->is_socket_fine)
-        return;
+        return false;
 
     ev.events = EPOLLIN | EPOLLOUT;
     ev.data.fd = sock->fd;
     if(epoll_ctl(epollfd, EPOLL_CTL_ADD, sock->fd, &ev) == -1) {
         std::cerr << "epoll_ctl(add): " << sock->fd << std::endl;
-        return;
+        return false;
     }
 
     sockets.push_back(std::move(sock));
+    return true;
 }
 
-void SocketPool::AddMsg(const std::string& host, const std::string& msg) {
-    i32 fd{};
+bool SocketPool::RemoveSocket(const std::string& host) {
+    i32 fd{-1};
 
     for(auto& socket : sockets) {
         if(socket->addr == host)
             fd = socket->fd;
     }
 
+    if (fd == -1)
+        return false;
+
+    if(epoll_ctl(epollfd, EPOLL_CTL_DEL, fd, NULL) == -1) {
+        std::cerr << "epoll_ctl(del): " << fd << std::endl;
+        return false;
+    }
+
+    return true;
+}
+
+bool SocketPool::AddMsg(const std::string& host, const std::string& msg) {
+    i32 fd{-1};
+
+    for(auto& socket : sockets) {
+        if(socket->addr == host)
+            fd = socket->fd;
+    }
+
+    if (fd == -1)
+        return false;
+
     messages.insert({fd, msg});
+    return true;
 }
 
 ssize_t SocketPool::Send() {
@@ -150,6 +174,7 @@ std::vector<HostMsg> SocketPool::Recv(bool (*valid_response)(const std::string&)
             if(buf.size() != 0 && valid_response(buf)) {
                 result.emplace_back(socket->addr, buf);
             }
+
         }
     }
 

@@ -26,8 +26,9 @@ public:
     SocketPool(const std::vector<std::pair<std::string, u16>>& sockets_data);
     ~SocketPool();
 
-    void AddSocket(const std::string& host, u16 port);
-    void AddMsg(const std::string& host, const std::string& msg);
+    bool AddSocket(const std::string& host, u16 port);
+    bool RemoveSocket(const std::string& host);
+    bool AddMsg(const std::string& host, const std::string& msg);
 
     ssize_t Send();
     std::vector<HostMsg> Recv(bool (*valid_response)(const std::string&));
