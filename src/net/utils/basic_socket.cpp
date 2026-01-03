@@ -65,7 +65,7 @@ BasicSocket::~BasicSocket() {
     close(fd);
 }
 
-void BasicSocket::SendBuf(std::string_view buff) const {
+void BasicSocket::SendBuf(std::string_view buff) {
     ssize_t bytes_sent = send(fd, buff.data(), buff.size(), MSG_NOSIGNAL);
     if(bytes_sent == -1) {
         if(errno == EWOULDBLOCK || errno == EAGAIN) {
@@ -84,7 +84,6 @@ std::string BasicSocket::ReadBuf() const {
     
     ssize_t bytes_read{};
     while((bytes_read = read(fd, buf, CHUNK)) > 0) {
-        std::cout << bytes_read << std::endl;
         std::string buff{buf, static_cast<u32>(bytes_read)};
         result.append(buff);
     }

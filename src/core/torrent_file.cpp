@@ -1,5 +1,8 @@
 #include "torrent_file.h"
 #include "bencode.h"
+#include <climits>
+#include <stdexcept>
+#include <unordered_map>
 #include <variant>
 
 TorrentFile::TorrentFile(const std::string& filename)
@@ -98,6 +101,44 @@ std::vector<std::string> TorrentFile::GetPieces() const {
     }
 
     return pieces;
+}
+
+std::vector<Tracker> TorrentFile::GetTrackers() const {
+    std::vector<Tracker> trackers{};
+
+    if(IsPrivate()) {
+        throw std::runtime_error("Private not implmented yet!");
+    }
+
+    std::unordered_map<i64, std::vector<std::string>> announce_map{GetAnnounceList()};
+
+    for(size_t i{}; i < announce_map.size(); i++) {
+        // First element
+        std::string url = announce_map.at(i).at(0);
+        ssize_t http_location = url.find("http://");
+
+        if(http_location != 0) {
+            continue;
+        }
+
+        const std::string prefix = "http://";
+        const std::string suffix = "/announce";
+
+        url = url.substr(prefix.size());
+
+        url = url.substr(0, url.find('/'));
+
+        ssize_t colon = url.find(':');
+
+        std::string host = url.substr(0, colon);
+        int port = std::stoi(url.substr(colon + 1));
+        if(port > USHRT_MAX) // invalid port
+            continue;
+
+        trackers.emplace_back(host, static_cast<u16>(port));
+    }
+
+    return trackers;
 }
 
 bool TorrentFile::IsPrivate() const {
