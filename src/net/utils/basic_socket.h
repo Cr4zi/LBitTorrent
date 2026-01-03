@@ -27,6 +27,6 @@ struct BasicSocket {
     BasicSocket(const std::string& host, u16 port);
     ~BasicSocket();
 
-    void SendBuf(std::string_view buffer) const;
+    void SendBuf(std::string_view buff);
     std::string ReadBuf() const;
 };

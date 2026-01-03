@@ -65,7 +65,7 @@ BasicSocket::~BasicSocket() {
     close(fd);
 }
 
-void BasicSocket::SendBuf(std::string_view buff) const {
+void BasicSocket::SendBuf(std::string_view buff) {
     ssize_t bytes_sent = send(fd, buff.data(), buff.size(), MSG_NOSIGNAL);
     if(bytes_sent == -1) {
         if(errno == EWOULDBLOCK || errno == EAGAIN) {
