@@ -6,7 +6,9 @@ std::optional<i64> bencode::ParseInt(std::istream& stream, bool is_str_length) {
     bool is_negative{false};
 
     if(!is_str_length) {
-        assert(stream.get() == 'i');
+        if(stream.get() != 'i')
+            return std::nullopt;
+
         if(stream.peek() == '-') {
             is_negative = true;
             stream.get(); // consume '-'
@@ -23,7 +25,8 @@ std::optional<i64> bencode::ParseInt(std::istream& stream, bool is_str_length) {
     }
 
     if(!is_str_length) {
-        assert(stream.get() == 'e');
+        if(stream.get() != 'e')
+            return std::nullopt;
     }
 
     return is_negative ? -number : number;
@@ -35,7 +38,8 @@ std::optional<std::string> bencode::ParseString(std::istream& stream) {
     if(!length_opt.has_value())
         return std::nullopt;
 
-    assert(stream.get() == ':');
+    if(stream.get() != ':')
+        return std::nullopt;
     
     for(i64 i = 0; i < *length_opt; i++) {
         int c = stream.get();
@@ -53,7 +57,8 @@ std::optional<bencode::List> bencode::ParseList(std::istream& stream) {
     List list{};
     char ch{};
 
-    assert(stream.get() == 'l');
+    if(stream.get() != 'l')
+        return std::nullopt;
 
     while((ch = stream.peek()) != EOF && ch != 'e') {
         BencodePtr element = ParseElement(stream);
@@ -63,7 +68,8 @@ std::optional<bencode::List> bencode::ParseList(std::istream& stream) {
         list.push_back(std::move(element));
     }
 
-    assert(stream.get() == 'e');
+    if(stream.get() != 'e')
+        return std::nullopt;
 
     return list;
 }
@@ -72,7 +78,8 @@ std::optional<bencode::Dict> bencode::ParseDict(std::istream& stream) {
     Dict dict{};
     char ch{};
 
-    assert(stream.get() == 'd');
+    if(stream.get() != 'd')
+        return std::nullopt;
 
     while((ch = stream.peek()) != EOF && ch != 'e') {
         if(!std::isdigit(ch)) {
@@ -91,7 +98,8 @@ std::optional<bencode::Dict> bencode::ParseDict(std::istream& stream) {
         dict.emplace(std::move(*key), std::move(value));
     }
 
-    assert(stream.get() == 'e');
+    if(stream.get() != 'e')
+        return std::nullopt;
 
     return dict;
 }
