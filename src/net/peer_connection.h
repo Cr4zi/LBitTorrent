@@ -11,7 +11,6 @@
 enum PeerState {
     HANDSHAKE_SEND,
     HANDSHAKE_READ,
-    BITFIELD_READ,
     NORMAL,
     ERR
 };
@@ -30,4 +29,10 @@ public:
 private:
     const TorrentFile& m_file;
     PeerState m_state;
+    std::string m_peer_id;
+
+    std::string PrepareHandshake();
+
+    /* Will return whether the returned handshake is fine */
+    bool IsValidHandshake(const std::string& handshake);
 };
