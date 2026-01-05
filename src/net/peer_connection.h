@@ -19,6 +19,7 @@ class PeerConnection : public Connection {
 public:
     BasicSocket socket;
     std::string msg;
+    std::vector<bool> bitfield;
     
     PeerConnection(const std::string& host, u16 port, const TorrentFile& file);
     ~PeerConnection() override;

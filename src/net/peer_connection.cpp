@@ -1,7 +1,7 @@
 #include "peer_connection.h"
 
 PeerConnection::PeerConnection(const std::string& host, u16 port, const TorrentFile& file)
-    : socket{host, port}, m_state{HANDSHAKE_SEND}, m_file(file)
+    : socket{host, port}, m_state{HANDSHAKE_SEND}, m_file(file), bitfield{}
 {}
 
 PeerConnection::~PeerConnection()
